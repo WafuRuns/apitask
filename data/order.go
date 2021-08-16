@@ -1,1 +1,7 @@
 package data
+
+type Order struct {
+	ID       uint64 `gorm:"primaryKey"`
+	Items    []OrderItem
+	Customer Customer
+}
