@@ -10,9 +10,12 @@ import (
 	"gorm.io/gorm"
 )
 
+var db *gorm.DB
+var err error
+
 func main() {
 	// GORM Connection (SQLite)
-	db, err := gorm.Open(sqlite.Open("database.db"), &gorm.Config{})
+	db, err = gorm.Open(sqlite.Open("database.db"), &gorm.Config{})
 	if err != nil {
 		panic("Database connection failed")
 	}
@@ -38,9 +41,20 @@ func main() {
 	// Start Fiber server
 	if args[0] == "start" {
 		app := fiber.New()
-		app.Get("/", func(c *fiber.Ctx) error {
-			return c.SendString("Hello")
-		})
+		app.Get("/customer/new/:name/:email", createCustomer)
 		app.Listen(":3000")
+	}
+}
+
+func createCustomer(c *fiber.Ctx) error {
+	customer := data.Customer{
+		Name:  c.Params("name"),
+		Email: c.Params("email"),
+	}
+	result := db.Create(&customer)
+	if result.Error != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	} else {
+		return c.SendStatus(fiber.StatusCreated)
 	}
 }
