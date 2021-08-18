@@ -1,8 +1,8 @@
 package data
 
 type Order struct {
-	ID        uint64      `gorm:"primaryKey"`
-	Items     []OrderItem `gorm:"foreignKey:ID"`
-	Customer  Customer    `gorm:"foreignKey:ID"`
+	OrderID   uint64      `gorm:"primaryKey"`
+	Items     []OrderItem `gorm:"foreignKey:OrderItemID"`
+	Customer  Customer    `gorm:"foreignKey:CustomerID;unique:false"`
 	Confirmed bool        `gorm:"default:false"`
 }
