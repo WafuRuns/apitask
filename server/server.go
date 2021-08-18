@@ -44,6 +44,8 @@ func main() {
 		app := fiber.New()
 		app.Get("/customer/new/:name/:email", createCustomer)
 		app.Get("/product/new/:name/:price", createProduct)
+		app.Get("/order/new/:customer", createOrder)
+		app.Get("/order/:orderid/add/:product/:amount", addOrderItem)
 		app.Listen(":3000")
 	}
 }
@@ -56,9 +58,8 @@ func createCustomer(c *fiber.Ctx) error {
 	result := db.Create(&customer)
 	if result.Error != nil {
 		return c.SendStatus(fiber.StatusBadRequest)
-	} else {
-		return c.SendStatus(fiber.StatusCreated)
 	}
+	return c.SendString(strconv.Itoa(int(customer.CustomerID)))
 }
 
 func createProduct(c *fiber.Ctx) error {
@@ -73,7 +74,63 @@ func createProduct(c *fiber.Ctx) error {
 	result := db.Create(&product)
 	if result.Error != nil {
 		return c.SendStatus(fiber.StatusBadRequest)
-	} else {
-		return c.SendStatus(fiber.StatusCreated)
 	}
+	return c.SendString(strconv.Itoa(int(product.ProductID)))
+}
+
+func createOrder(c *fiber.Ctx) error {
+	customerID, err := strconv.ParseInt(c.Params("customer"), 10, 64)
+	if err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+	var customer data.Customer
+	result := db.Where("customer_id = ?", customerID).First(&customer)
+	if result.Error == nil {
+		order := data.Order{
+			Customer: customer,
+			Items:    []data.OrderItem{},
+		}
+		result := db.Create(&order)
+		if result.Error != nil {
+			return c.SendStatus(fiber.StatusBadRequest)
+		}
+		return c.SendString(strconv.Itoa(int(order.OrderID)))
+	}
+	return c.SendStatus(fiber.StatusBadRequest)
+}
+
+func addOrderItem(c *fiber.Ctx) error {
+	orderID, err := strconv.ParseInt(c.Params("orderid"), 10, 64)
+	if err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+	var order data.Order
+	result := db.Where("order_id = ?", orderID).First(&order)
+	fmt.Println(orderID)
+	fmt.Println(order.Customer.Email)
+	if result.Error == nil {
+		productID, err := strconv.ParseInt(c.Params("product"), 10, 64)
+		if err != nil {
+			return c.SendStatus(fiber.StatusBadRequest)
+		}
+		var product data.Product
+		result := db.Where("product_id = ?", productID).First(&product)
+		if result.Error == nil {
+			amount, err := strconv.ParseInt(c.Params("amount"), 10, 64)
+			if err != nil {
+				fmt.Println("test3")
+				return c.SendStatus(fiber.StatusBadRequest)
+			}
+			orderItem := data.OrderItem{
+				Product: product,
+				Amount:  uint64(amount),
+			}
+			fmt.Println(order)
+			a = append(order.Items, orderItem)
+			fmt.Println(order)
+			db.Save(&order)
+			return c.SendStatus(fiber.StatusOK)
+		}
+	}
+	return c.SendStatus(fiber.StatusBadRequest)
 }
