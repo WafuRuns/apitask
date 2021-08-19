@@ -106,8 +106,6 @@ func addOrderItem(c *fiber.Ctx) error {
 	}
 	var order data.Order
 	result := db.Where("order_id = ?", orderID).First(&order)
-	fmt.Println(orderID)
-	fmt.Println(order.Customer.Email)
 	if result.Error == nil {
 		productID, err := strconv.ParseInt(c.Params("product"), 10, 64)
 		if err != nil {
@@ -118,7 +116,6 @@ func addOrderItem(c *fiber.Ctx) error {
 		if result.Error == nil {
 			amount, err := strconv.ParseInt(c.Params("amount"), 10, 64)
 			if err != nil {
-				fmt.Println("test3")
 				return c.SendStatus(fiber.StatusBadRequest)
 			}
 			orderItem := data.OrderItem{
@@ -127,10 +124,9 @@ func addOrderItem(c *fiber.Ctx) error {
 				Amount:    uint64(amount),
 			}
 			db.Model(&order).Association("Items").Append(&orderItem)
-			db.Save(&order)
+			// Getting order items
 			var items []data.OrderItem
-			result := db.Find(&items, "order_id = ?", order.OrderID)
-			fmt.Println(result)
+			db.Find(&items, "order_id = ?", order.OrderID)
 			fmt.Println(items)
 			return c.SendStatus(fiber.StatusOK)
 		}
