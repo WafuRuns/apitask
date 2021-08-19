@@ -34,8 +34,8 @@ func main() {
 	if args[0] == "init" {
 		db.AutoMigrate(&data.Customer{})
 		db.AutoMigrate(&data.Product{})
-		db.AutoMigrate(&data.OrderItem{})
 		db.AutoMigrate(&data.Order{})
+		db.AutoMigrate(&data.OrderItem{})
 		return
 	}
 
@@ -122,13 +122,16 @@ func addOrderItem(c *fiber.Ctx) error {
 				return c.SendStatus(fiber.StatusBadRequest)
 			}
 			orderItem := data.OrderItem{
-				Product: product,
-				Amount:  uint64(amount),
+				Product:   product,
+				ProductID: product.ProductID,
+				Amount:    uint64(amount),
 			}
-			fmt.Println(order)
-			a = append(order.Items, orderItem)
-			fmt.Println(order)
+			db.Model(&order).Association("Items").Append(&orderItem)
 			db.Save(&order)
+			var items []data.OrderItem
+			result := db.Find(&items, "order_id = ?", order.OrderID)
+			fmt.Println(result)
+			fmt.Println(items)
 			return c.SendStatus(fiber.StatusOK)
 		}
 	}
