@@ -149,5 +149,17 @@ func deleteOrderItem(c *fiber.Ctx) error {
 }
 
 func changeOrderItemAmount(c *fiber.Ctx) error {
+	itemID, err := strconv.ParseInt(c.Params("itemid"), 10, 64)
+	if err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+	amount, err := strconv.ParseInt(c.Params("amount"), 10, 64)
+	if err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+	res := db.Model(&data.OrderItem{}).Where("order_item_id = ?", itemID).Update("amount", amount)
+	if res.RowsAffected > 0 {
+		return c.SendStatus(fiber.StatusOK)
+	}
 	return c.SendStatus(fiber.StatusBadRequest)
 }
