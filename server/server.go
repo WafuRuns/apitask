@@ -46,6 +46,8 @@ func main() {
 		app.Get("/product/new/:name/:price", createProduct)
 		app.Get("/order/new/:customer", createOrder)
 		app.Get("/order/:orderid/add/:product/:amount", addOrderItem)
+		app.Get("/orderitem/:itemid/delete", deleteOrderItem)
+		app.Get("/orderitem/:itemid/amount/:amount", changeOrderItemAmount)
 		app.Listen(":3000")
 	}
 }
@@ -131,5 +133,13 @@ func addOrderItem(c *fiber.Ctx) error {
 			return c.SendStatus(fiber.StatusOK)
 		}
 	}
+	return c.SendStatus(fiber.StatusBadRequest)
+}
+
+func deleteOrderItem(c *fiber.Ctx) error {
+	return c.SendStatus(fiber.StatusBadRequest)
+}
+
+func changeOrderItemAmount(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusBadRequest)
 }
