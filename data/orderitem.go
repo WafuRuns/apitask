@@ -1,9 +1,9 @@
 package data
 
 type OrderItem struct {
-	OrderItemID uint64  `gorm:"primaryKey"`
-	Product     Product `gorm:"references:ProductID"`
-	ProductID   uint64
-	OrderID     uint64
-	Amount      uint64
+	OrderItemID uint64  `gorm:"primaryKey" json:"orderItemID"`
+	Product     Product `gorm:"references:ProductID" json:"product"`
+	ProductID   uint64  `json:"-"`
+	OrderID     uint64  `json:"-"`
+	Amount      uint64  `json:"amount"`
 }
