@@ -48,6 +48,7 @@ func main() {
 		app.Get("/order/new/:customer", createOrder)
 		app.Get("/order/:orderid/add/:product/:amount", addOrderItem)
 		app.Get("/order/:orderid/confirm", confirmOrder)
+		app.Get("/order/:orderid", fetchOrder)
 		app.Get("/orderitem/:itemid/delete", deleteOrderItem)
 		app.Get("/orderitem/:itemid/amount/:amount", changeOrderItemAmount)
 		app.Get("/emails", sendReminders)
@@ -136,6 +137,22 @@ func addOrderItem(c *fiber.Ctx) error {
 			fmt.Println(items)
 			return c.SendStatus(fiber.StatusOK)
 		}
+	}
+	return c.SendStatus(fiber.StatusBadRequest)
+}
+
+func fetchOrder(c *fiber.Ctx) error {
+	orderID, err := strconv.ParseInt(c.Params("orderid"), 10, 64)
+	if err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+	var order data.Order
+	result := db.Where("order_id = ?", orderID).First(&order)
+	if result.Error == nil {
+		db.Find(&order.Items, "order_id = ?", order.OrderID)
+		db.Find(&order.Customer, "customer_id", order.CustomerID)
+		fmt.Println(order)
+		return c.SendStatus(fiber.StatusOK)
 	}
 	return c.SendStatus(fiber.StatusBadRequest)
 }
