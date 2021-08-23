@@ -150,9 +150,12 @@ func fetchOrder(c *fiber.Ctx) error {
 	result := db.Where("order_id = ?", orderID).First(&order)
 	if result.Error == nil {
 		db.Find(&order.Items, "order_id = ?", order.OrderID)
-		db.Find(&order.Customer, "customer_id", order.CustomerID)
+		db.Find(&order.Customer, "customer_id = ?", order.CustomerID)
+		for i, orderItem := range order.Items {
+			db.Find(&order.Items[i].Product, "product_id = ?", orderItem.ProductID)
+		}
 		fmt.Println(order)
-		return c.SendStatus(fiber.StatusOK)
+		return c.JSON(order)
 	}
 	return c.SendStatus(fiber.StatusBadRequest)
 }
