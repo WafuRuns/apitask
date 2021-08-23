@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/KawaiiWafu/apitask/data"
 	"github.com/gofiber/fiber/v2"
@@ -46,8 +47,10 @@ func main() {
 		app.Get("/product/new/:name/:price", createProduct)
 		app.Get("/order/new/:customer", createOrder)
 		app.Get("/order/:orderid/add/:product/:amount", addOrderItem)
+		app.Get("/order/:orderid/confirm", confirmOrder)
 		app.Get("/orderitem/:itemid/delete", deleteOrderItem)
 		app.Get("/orderitem/:itemid/amount/:amount", changeOrderItemAmount)
+		app.Get("/emails", sendReminders)
 		app.Listen(":3000")
 	}
 }
@@ -149,6 +152,18 @@ func deleteOrderItem(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusBadRequest)
 }
 
+func confirmOrder(c *fiber.Ctx) error {
+	orderID, err := strconv.ParseInt(c.Params("orderid"), 10, 64)
+	if err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+	res := db.Model(&data.Order{}).Where("order_id = ?", orderID).Update("confirmed", true)
+	if res.RowsAffected > 0 {
+		return c.SendStatus(fiber.StatusOK)
+	}
+	return c.SendStatus(fiber.StatusBadRequest)
+}
+
 func changeOrderItemAmount(c *fiber.Ctx) error {
 	itemID, err := strconv.ParseInt(c.Params("itemid"), 10, 64)
 	if err != nil {
@@ -163,4 +178,22 @@ func changeOrderItemAmount(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusOK)
 	}
 	return c.SendStatus(fiber.StatusBadRequest)
+}
+
+func sendReminders(c *fiber.Ctx) error {
+	now := time.Now()
+	// lastWeek := now.AddDate(0, 0, -7)
+	lastWeek := now.AddDate(0, 0, 0)
+	var orders []data.Order
+	res := db.Where("confirmed = ? AND reminded = ? AND created_at <= ?", false, false, lastWeek).Find(&orders)
+	if res.RowsAffected > 0 {
+		tx := db.Begin()
+		for _, order := range orders {
+			// Send email
+			fmt.Println(order)
+			tx.Model(&order).Update("reminded", true)
+		}
+		tx.Commit()
+	}
+	return c.SendStatus(fiber.StatusOK)
 }
