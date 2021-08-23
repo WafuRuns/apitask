@@ -61,6 +61,7 @@ func createCustomer(c *fiber.Ctx) error {
 	if result.Error != nil {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
+	// return c.Status(fiber.StatusBadRequest).JSON(&fiber.Map{"status": fiber.StatusBadRequest, "success": false})
 	return c.SendString(strconv.Itoa(int(customer.CustomerID)))
 }
 
