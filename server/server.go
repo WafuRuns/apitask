@@ -63,10 +63,17 @@ func createCustomer(c *fiber.Ctx) error {
 	}
 	result := db.Create(&customer)
 	if result.Error != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.JSON(&fiber.Map{
+			"status":  fiber.StatusInternalServerError,
+			"success": false,
+			"error":   "Customer creation failed",
+		})
 	}
-	// return c.Status(fiber.StatusBadRequest).JSON(&fiber.Map{"status": fiber.StatusBadRequest, "success": false})
-	return c.SendString(strconv.Itoa(int(customer.CustomerID)))
+	return c.JSON(&fiber.Map{
+		"status":   fiber.StatusCreated,
+		"success":  true,
+		"customer": customer,
+	})
 }
 
 func createProduct(c *fiber.Ctx) error {
