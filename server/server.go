@@ -197,13 +197,24 @@ func deleteOrderItem(c *fiber.Ctx) error {
 func confirmOrder(c *fiber.Ctx) error {
 	orderID, err := strconv.ParseInt(c.Params("orderid"), 10, 64)
 	if err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.JSON(&fiber.Map{
+			"status":  fiber.StatusBadRequest,
+			"success": false,
+			"error":   "Wrong order item ID format",
+		})
 	}
 	res := db.Model(&data.Order{}).Where("order_id = ?", orderID).Update("confirmed", true)
 	if res.RowsAffected > 0 {
-		return c.SendStatus(fiber.StatusOK)
+		return c.JSON(&fiber.Map{
+			"status":  fiber.StatusOK,
+			"success": true,
+		})
 	}
-	return c.SendStatus(fiber.StatusBadRequest)
+	return c.JSON(&fiber.Map{
+		"status":  fiber.StatusBadRequest,
+		"success": false,
+		"error":   "Order does not exist",
+	})
 }
 
 func changeOrderItemAmount(c *fiber.Ctx) error {
@@ -237,6 +248,8 @@ func changeOrderItemAmount(c *fiber.Ctx) error {
 	})
 }
 
+// SHOULDN'T BE API REQUEST!
+// Implement with cron
 func sendReminders(c *fiber.Ctx) error {
 	now := time.Now()
 	// lastWeek := now.AddDate(0, 0, -7)
