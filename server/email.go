@@ -18,7 +18,7 @@ func sendReminders() {
 
 	// Get time before 7 days
 	now := time.Now()
-	lastWeek := now.AddDate(0, 0, 0)
+	lastWeek := now.AddDate(0, 0, -7)
 	var orders []data.Order
 
 	// Find orders older than 7 days
