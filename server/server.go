@@ -144,21 +144,33 @@ func createOrder(c *fiber.Ctx) error {
 func addOrderItem(c *fiber.Ctx) error {
 	orderID, err := strconv.ParseInt(c.Params("orderid"), 10, 64)
 	if err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.JSON(&fiber.Map{
+			"status":  fiber.StatusBadRequest,
+			"success": false,
+			"error":   "Wrong order ID format",
+		})
 	}
 	var order data.Order
 	result := db.Where("order_id = ?", orderID).First(&order)
 	if result.Error == nil {
 		productID, err := strconv.ParseInt(c.Params("product"), 10, 64)
 		if err != nil {
-			return c.SendStatus(fiber.StatusBadRequest)
+			return c.JSON(&fiber.Map{
+				"status":  fiber.StatusBadRequest,
+				"success": false,
+				"error":   "Wrong product ID format",
+			})
 		}
 		var product data.Product
 		result := db.Where("product_id = ?", productID).First(&product)
 		if result.Error == nil {
 			amount, err := strconv.ParseInt(c.Params("amount"), 10, 64)
 			if err != nil {
-				return c.SendStatus(fiber.StatusBadRequest)
+				return c.JSON(&fiber.Map{
+					"status":  fiber.StatusBadRequest,
+					"success": false,
+					"error":   "Wrong order item amount format",
+				})
 			}
 			orderItem := data.OrderItem{
 				Product:   product,
@@ -166,14 +178,23 @@ func addOrderItem(c *fiber.Ctx) error {
 				Amount:    uint64(amount),
 			}
 			db.Model(&order).Association("Items").Append(&orderItem)
-			// Getting order items
-			var items []data.OrderItem
-			db.Find(&items, "order_id = ?", order.OrderID)
-			fmt.Println(items)
-			return c.SendStatus(fiber.StatusOK)
+			return c.JSON(&fiber.Map{
+				"status":    fiber.StatusCreated,
+				"success":   true,
+				"orderItem": orderItem,
+			})
 		}
+		return c.JSON(&fiber.Map{
+			"status":  fiber.StatusBadRequest,
+			"success": false,
+			"error":   "Product does not exist",
+		})
 	}
-	return c.SendStatus(fiber.StatusBadRequest)
+	return c.JSON(&fiber.Map{
+		"status":  fiber.StatusBadRequest,
+		"success": false,
+		"error":   "Order does not exist",
+	})
 }
 
 func fetchOrder(c *fiber.Ctx) error {
