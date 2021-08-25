@@ -174,13 +174,24 @@ func fetchOrder(c *fiber.Ctx) error {
 func deleteOrderItem(c *fiber.Ctx) error {
 	itemID, err := strconv.ParseInt(c.Params("itemid"), 10, 64)
 	if err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.JSON(&fiber.Map{
+			"status":  fiber.StatusBadRequest,
+			"success": false,
+			"error":   "Wrong order item ID format",
+		})
 	}
 	res := db.Where("order_item_id = ?", itemID).Delete(data.OrderItem{})
 	if res.RowsAffected > 0 {
-		return c.SendStatus(fiber.StatusOK)
+		return c.JSON(&fiber.Map{
+			"status":  fiber.StatusOK,
+			"success": true,
+		})
 	}
-	return c.SendStatus(fiber.StatusBadRequest)
+	return c.JSON(&fiber.Map{
+		"status":  fiber.StatusBadRequest,
+		"success": false,
+		"error":   "Order item does not exist",
+	})
 }
 
 func confirmOrder(c *fiber.Ctx) error {
