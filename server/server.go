@@ -51,7 +51,7 @@ func main() {
 		app.Get("/order/:orderid", fetchOrder)
 		app.Get("/orderitem/:itemid/delete", deleteOrderItem)
 		app.Get("/orderitem/:itemid/amount/:amount", changeOrderItemAmount)
-		app.Get("/emails", sendReminders)
+		app.Get("/emails", sendReminders) // Delete later
 		app.Listen(":3000")
 	}
 }
@@ -80,7 +80,7 @@ func createProduct(c *fiber.Ctx) error {
 	price, err := strconv.ParseFloat(c.Params("price"), 64)
 	if err != nil {
 		return c.JSON(&fiber.Map{
-			"status":  fiber.StatusInternalServerError,
+			"status":  fiber.StatusBadRequest,
 			"success": false,
 			"error":   "Wrong product price format",
 		})
@@ -107,7 +107,11 @@ func createProduct(c *fiber.Ctx) error {
 func createOrder(c *fiber.Ctx) error {
 	customerID, err := strconv.ParseInt(c.Params("customer"), 10, 64)
 	if err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.JSON(&fiber.Map{
+			"status":  fiber.StatusBadRequest,
+			"success": false,
+			"error":   "Wrong customer ID format",
+		})
 	}
 	var customer data.Customer
 	result := db.Where("customer_id = ?", customerID).First(&customer)
@@ -118,11 +122,23 @@ func createOrder(c *fiber.Ctx) error {
 		}
 		result := db.Create(&order)
 		if result.Error != nil {
-			return c.SendStatus(fiber.StatusBadRequest)
+			return c.JSON(&fiber.Map{
+				"status":  fiber.StatusInternalServerError,
+				"success": false,
+				"error":   "Order creation failed",
+			})
 		}
-		return c.SendString(strconv.Itoa(int(order.OrderID)))
+		return c.JSON(&fiber.Map{
+			"status":  fiber.StatusCreated,
+			"success": true,
+			"order":   order,
+		})
 	}
-	return c.SendStatus(fiber.StatusBadRequest)
+	return c.JSON(&fiber.Map{
+		"status":  fiber.StatusBadRequest,
+		"success": false,
+		"error":   "Customer does not exist",
+	})
 }
 
 func addOrderItem(c *fiber.Ctx) error {
