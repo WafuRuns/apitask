@@ -51,14 +51,14 @@ func main() {
 		// Configure routes and start Fiber
 		// Larger apps should use Prefork
 		app := fiber.New()
-		app.Post("/customer/new/:name/:email", createCustomer)
-		app.Post("/product/new/:name/:price", createProduct)
-		app.Post("/order/new/:customer", createOrder)
-		app.Put("/order/:orderid/add/:product/:amount", addOrderItem)
-		app.Post("/order/:orderid/confirm", confirmOrder)
+		app.Post("/customer/new", createCustomer)
+		app.Post("/product/new", createProduct)
+		app.Post("/order/new", createOrder)
+		app.Put("/order/add", addOrderItem)
+		app.Put("/order/confirm", confirmOrder)
 		app.Get("/order/:orderid", fetchOrder)
-		app.Delete("/orderitem/:itemid/delete", deleteOrderItem)
-		app.Put("/orderitem/:itemid/amount/:amount", changeOrderItemAmount)
+		app.Delete("/orderitem", deleteOrderItem)
+		app.Put("/orderitem/amount", changeOrderItemAmount)
 		app.Listen(":3000")
 	}
 }
