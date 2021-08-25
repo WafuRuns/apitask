@@ -16,7 +16,7 @@ func createCustomer(c *fiber.Ctx) error {
 	if result.Error != nil {
 		return serverError(c, "Customer creation failed")
 	}
-	return c.JSON(&fiber.Map{
+	return c.Status(fiber.StatusCreated).JSON(&fiber.Map{
 		"status":   fiber.StatusCreated,
 		"success":  true,
 		"customer": customer,
@@ -36,7 +36,7 @@ func createProduct(c *fiber.Ctx) error {
 	if result.Error != nil {
 		return serverError(c, "Product creation failed")
 	}
-	return c.JSON(&fiber.Map{
+	return c.Status(fiber.StatusCreated).JSON(&fiber.Map{
 		"status":  fiber.StatusCreated,
 		"success": true,
 		"product": product,
@@ -59,7 +59,7 @@ func createOrder(c *fiber.Ctx) error {
 		if result.Error != nil {
 			return serverError(c, "Order creation failed")
 		}
-		return c.JSON(&fiber.Map{
+		return c.Status(fiber.StatusCreated).JSON(&fiber.Map{
 			"status":  fiber.StatusCreated,
 			"success": true,
 			"order":   order,
@@ -93,7 +93,7 @@ func addOrderItem(c *fiber.Ctx) error {
 				Amount:    uint64(amount),
 			}
 			db.Model(&order).Association("Items").Append(&orderItem)
-			return c.JSON(&fiber.Map{
+			return c.Status(fiber.StatusCreated).JSON(&fiber.Map{
 				"status":    fiber.StatusCreated,
 				"success":   true,
 				"orderItem": orderItem,
@@ -117,7 +117,7 @@ func fetchOrder(c *fiber.Ctx) error {
 		for i, orderItem := range order.Items {
 			db.Find(&order.Items[i].Product, "product_id = ?", orderItem.ProductID)
 		}
-		return c.JSON(&fiber.Map{
+		return c.Status(fiber.StatusOK).JSON(&fiber.Map{
 			"status":  fiber.StatusOK,
 			"success": true,
 			"order":   order,
@@ -133,7 +133,7 @@ func deleteOrderItem(c *fiber.Ctx) error {
 	}
 	res := db.Where("order_item_id = ?", itemID).Delete(data.OrderItem{})
 	if res.RowsAffected > 0 {
-		return c.JSON(&fiber.Map{
+		return c.Status(fiber.StatusOK).JSON(&fiber.Map{
 			"status":  fiber.StatusOK,
 			"success": true,
 		})
@@ -148,7 +148,7 @@ func confirmOrder(c *fiber.Ctx) error {
 	}
 	res := db.Model(&data.Order{}).Where("order_id = ?", orderID).Update("confirmed", true)
 	if res.RowsAffected > 0 {
-		return c.JSON(&fiber.Map{
+		return c.Status(fiber.StatusOK).JSON(&fiber.Map{
 			"status":  fiber.StatusOK,
 			"success": true,
 		})
@@ -167,7 +167,7 @@ func changeOrderItemAmount(c *fiber.Ctx) error {
 	}
 	res := db.Model(&data.OrderItem{}).Where("order_item_id = ?", itemID).Update("amount", amount)
 	if res.RowsAffected > 0 {
-		return c.JSON(&fiber.Map{
+		return c.Status(fiber.StatusOK).JSON(&fiber.Map{
 			"status":  fiber.StatusOK,
 			"success": true,
 		})
