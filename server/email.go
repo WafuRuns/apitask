@@ -36,7 +36,6 @@ func sendReminders() {
 				)
 				err := smtp.SendMail(host+":"+port, auth, from, to, msg)
 				if err != nil {
-					println(order.OrderID)
 					fmt.Println(err)
 				} else {
 					tx.Model(&order).Update("reminded", true)
