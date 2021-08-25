@@ -2,6 +2,27 @@
 
 REST API for creating orders and sending email reminders of unfinished orders, written in Go.
 
+## Initializing database (development)
+
+```bash
+cd server
+go run . init
+```
+
+## Starting application (development)
+
+```bash
+cd server
+go run . start
+```
+
+## Starting application (production)
+
+```bash
+docker build -t apitask .
+docker run -d -p 3000:3000 apitask
+```
+
 ## API Documentation
 
 ### POST /customer/new
