@@ -7,6 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// POST /customer/new/{name}/{email}
+// Creates new customer and returns them
 func createCustomer(c *fiber.Ctx) error {
 	customer := data.Customer{
 		Name:  c.Params("name"),
@@ -23,6 +25,8 @@ func createCustomer(c *fiber.Ctx) error {
 	})
 }
 
+// POST /product/new/{name}/{price}
+// Creates new product and returns it
 func createProduct(c *fiber.Ctx) error {
 	price, err := strconv.ParseFloat(c.Params("price"), 64)
 	if err != nil {
@@ -43,6 +47,8 @@ func createProduct(c *fiber.Ctx) error {
 	})
 }
 
+// POST /order/new/{customer}
+// Creates new order and returns it
 func createOrder(c *fiber.Ctx) error {
 	customerID, err := strconv.ParseInt(c.Params("customer"), 10, 64)
 	if err != nil {
@@ -68,6 +74,8 @@ func createOrder(c *fiber.Ctx) error {
 	return clientError(c, "Customer does not exist")
 }
 
+// PUT /order/{orderid}/add/{product}/{amount}
+// Adds product into order and returns it
 func addOrderItem(c *fiber.Ctx) error {
 	orderID, err := strconv.ParseInt(c.Params("orderid"), 10, 64)
 	if err != nil {
@@ -104,6 +112,8 @@ func addOrderItem(c *fiber.Ctx) error {
 	return clientError(c, "Order does not exist")
 }
 
+// GET /order/{orderid}
+// Returns complete order information
 func fetchOrder(c *fiber.Ctx) error {
 	orderID, err := strconv.ParseInt(c.Params("orderid"), 10, 64)
 	if err != nil {
@@ -126,6 +136,8 @@ func fetchOrder(c *fiber.Ctx) error {
 	return clientError(c, "Order does not exist")
 }
 
+// DELETE /orderitem/{itemid}/delete
+// Deletes order item
 func deleteOrderItem(c *fiber.Ctx) error {
 	itemID, err := strconv.ParseInt(c.Params("itemid"), 10, 64)
 	if err != nil {
@@ -141,6 +153,8 @@ func deleteOrderItem(c *fiber.Ctx) error {
 	return clientError(c, "Order item does not exist")
 }
 
+// PUT /order/{orderid}/confirm
+// Confirms order
 func confirmOrder(c *fiber.Ctx) error {
 	orderID, err := strconv.ParseInt(c.Params("orderid"), 10, 64)
 	if err != nil {
@@ -156,6 +170,8 @@ func confirmOrder(c *fiber.Ctx) error {
 	return clientError(c, "Order does not exist")
 }
 
+// PUT /orderitem/{itemid}/amount/{amount}
+// Changes amount of items of order item
 func changeOrderItemAmount(c *fiber.Ctx) error {
 	itemID, err := strconv.ParseInt(c.Params("itemid"), 10, 64)
 	if err != nil {
