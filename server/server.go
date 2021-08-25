@@ -31,12 +31,11 @@ func main() {
 	}
 
 	// Initialize database
-	if args[0] == "init" {
+	if args[0] == "init" || args[0] == "start" {
 		db.AutoMigrate(&data.Customer{})
 		db.AutoMigrate(&data.Product{})
 		db.AutoMigrate(&data.Order{})
 		db.AutoMigrate(&data.OrderItem{})
-		return
 	}
 
 	// Start Fiber server
