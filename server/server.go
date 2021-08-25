@@ -79,7 +79,11 @@ func createCustomer(c *fiber.Ctx) error {
 func createProduct(c *fiber.Ctx) error {
 	price, err := strconv.ParseFloat(c.Params("price"), 64)
 	if err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.JSON(&fiber.Map{
+			"status":  fiber.StatusInternalServerError,
+			"success": false,
+			"error":   "Wrong product price format",
+		})
 	}
 	product := data.Product{
 		Name:     c.Params("name"),
@@ -87,9 +91,17 @@ func createProduct(c *fiber.Ctx) error {
 	}
 	result := db.Create(&product)
 	if result.Error != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.JSON(&fiber.Map{
+			"status":  fiber.StatusInternalServerError,
+			"success": false,
+			"error":   "Product creation failed",
+		})
 	}
-	return c.SendString(strconv.Itoa(int(product.ProductID)))
+	return c.JSON(&fiber.Map{
+		"status":  fiber.StatusCreated,
+		"success": true,
+		"product": product,
+	})
 }
 
 func createOrder(c *fiber.Ctx) error {
