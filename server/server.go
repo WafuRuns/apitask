@@ -144,7 +144,11 @@ func addOrderItem(c *fiber.Ctx) error {
 func fetchOrder(c *fiber.Ctx) error {
 	orderID, err := strconv.ParseInt(c.Params("orderid"), 10, 64)
 	if err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.JSON(&fiber.Map{
+			"status":  fiber.StatusBadRequest,
+			"success": false,
+			"error":   "Wrong order ID format",
+		})
 	}
 	var order data.Order
 	result := db.Where("order_id = ?", orderID).First(&order)
@@ -154,10 +158,17 @@ func fetchOrder(c *fiber.Ctx) error {
 		for i, orderItem := range order.Items {
 			db.Find(&order.Items[i].Product, "product_id = ?", orderItem.ProductID)
 		}
-		fmt.Println(order)
-		return c.JSON(order)
+		return c.JSON(&fiber.Map{
+			"status":  fiber.StatusOK,
+			"success": true,
+			"order":   order,
+		})
 	}
-	return c.SendStatus(fiber.StatusBadRequest)
+	return c.JSON(&fiber.Map{
+		"status":  fiber.StatusBadRequest,
+		"success": false,
+		"error":   "Order does not exist",
+	})
 }
 
 func deleteOrderItem(c *fiber.Ctx) error {
