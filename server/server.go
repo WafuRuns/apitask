@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/KawaiiWafu/apitask/data"
 	"github.com/gofiber/fiber/v2"
+	"github.com/robfig/cron/v3"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -41,36 +41,24 @@ func main() {
 
 	// Start Fiber server
 	if args[0] == "start" {
+		// Start sending reminders on midnight
+		// cron library runs the function as goroutine
+		// Should use real crontab in production
+		c := cron.New()
+		c.AddFunc("@midnight", sendReminders)
+		c.Start()
+
+		// Configure routes and start Fiber
+		// Larger apps should use Prefork
 		app := fiber.New()
-		app.Get("/customer/new/:name/:email", createCustomer)
-		app.Get("/product/new/:name/:price", createProduct)
-		app.Get("/order/new/:customer", createOrder)
-		app.Get("/order/:orderid/add/:product/:amount", addOrderItem)
-		app.Get("/order/:orderid/confirm", confirmOrder)
+		app.Post("/customer/new/:name/:email", createCustomer)
+		app.Post("/product/new/:name/:price", createProduct)
+		app.Post("/order/new/:customer", createOrder)
+		app.Put("/order/:orderid/add/:product/:amount", addOrderItem)
+		app.Post("/order/:orderid/confirm", confirmOrder)
 		app.Get("/order/:orderid", fetchOrder)
-		app.Get("/orderitem/:itemid/delete", deleteOrderItem)
-		app.Get("/orderitem/:itemid/amount/:amount", changeOrderItemAmount)
-		app.Get("/emails", sendReminders) // Delete later
+		app.Delete("/orderitem/:itemid/delete", deleteOrderItem)
+		app.Put("/orderitem/:itemid/amount/:amount", changeOrderItemAmount)
 		app.Listen(":3000")
 	}
-}
-
-// SHOULDN'T BE API REQUEST!
-// Implement with cron
-func sendReminders(c *fiber.Ctx) error {
-	now := time.Now()
-	// lastWeek := now.AddDate(0, 0, -7)
-	lastWeek := now.AddDate(0, 0, 0)
-	var orders []data.Order
-	res := db.Where("confirmed = ? AND reminded = ? AND created_at <= ?", false, false, lastWeek).Find(&orders)
-	if res.RowsAffected > 0 {
-		tx := db.Begin()
-		for _, order := range orders {
-			// Send email
-			fmt.Println(order)
-			tx.Model(&order).Update("reminded", true)
-		}
-		tx.Commit()
-	}
-	return c.SendStatus(fiber.StatusOK)
 }
