@@ -63,11 +63,7 @@ func createCustomer(c *fiber.Ctx) error {
 	}
 	result := db.Create(&customer)
 	if result.Error != nil {
-		return c.JSON(&fiber.Map{
-			"status":  fiber.StatusInternalServerError,
-			"success": false,
-			"error":   "Customer creation failed",
-		})
+		return serverError(c, "Customer creation failed")
 	}
 	return c.JSON(&fiber.Map{
 		"status":   fiber.StatusCreated,
@@ -79,11 +75,7 @@ func createCustomer(c *fiber.Ctx) error {
 func createProduct(c *fiber.Ctx) error {
 	price, err := strconv.ParseFloat(c.Params("price"), 64)
 	if err != nil {
-		return c.JSON(&fiber.Map{
-			"status":  fiber.StatusBadRequest,
-			"success": false,
-			"error":   "Wrong product price format",
-		})
+		return clientError(c, "Wrong product price format")
 	}
 	product := data.Product{
 		Name:     c.Params("name"),
@@ -91,11 +83,7 @@ func createProduct(c *fiber.Ctx) error {
 	}
 	result := db.Create(&product)
 	if result.Error != nil {
-		return c.JSON(&fiber.Map{
-			"status":  fiber.StatusInternalServerError,
-			"success": false,
-			"error":   "Product creation failed",
-		})
+		return serverError(c, "Product creation failed")
 	}
 	return c.JSON(&fiber.Map{
 		"status":  fiber.StatusCreated,
@@ -107,11 +95,7 @@ func createProduct(c *fiber.Ctx) error {
 func createOrder(c *fiber.Ctx) error {
 	customerID, err := strconv.ParseInt(c.Params("customer"), 10, 64)
 	if err != nil {
-		return c.JSON(&fiber.Map{
-			"status":  fiber.StatusBadRequest,
-			"success": false,
-			"error":   "Wrong customer ID format",
-		})
+		return clientError(c, "Wrong customer ID format")
 	}
 	var customer data.Customer
 	result := db.Where("customer_id = ?", customerID).First(&customer)
@@ -122,11 +106,7 @@ func createOrder(c *fiber.Ctx) error {
 		}
 		result := db.Create(&order)
 		if result.Error != nil {
-			return c.JSON(&fiber.Map{
-				"status":  fiber.StatusInternalServerError,
-				"success": false,
-				"error":   "Order creation failed",
-			})
+			return serverError(c, "Order creation failed")
 		}
 		return c.JSON(&fiber.Map{
 			"status":  fiber.StatusCreated,
@@ -134,43 +114,27 @@ func createOrder(c *fiber.Ctx) error {
 			"order":   order,
 		})
 	}
-	return c.JSON(&fiber.Map{
-		"status":  fiber.StatusBadRequest,
-		"success": false,
-		"error":   "Customer does not exist",
-	})
+	return clientError(c, "Customer does not exist")
 }
 
 func addOrderItem(c *fiber.Ctx) error {
 	orderID, err := strconv.ParseInt(c.Params("orderid"), 10, 64)
 	if err != nil {
-		return c.JSON(&fiber.Map{
-			"status":  fiber.StatusBadRequest,
-			"success": false,
-			"error":   "Wrong order ID format",
-		})
+		return clientError(c, "Wrong order ID format")
 	}
 	var order data.Order
 	result := db.Where("order_id = ?", orderID).First(&order)
 	if result.Error == nil {
 		productID, err := strconv.ParseInt(c.Params("product"), 10, 64)
 		if err != nil {
-			return c.JSON(&fiber.Map{
-				"status":  fiber.StatusBadRequest,
-				"success": false,
-				"error":   "Wrong product ID format",
-			})
+			return clientError(c, "Wrong product ID format")
 		}
 		var product data.Product
 		result := db.Where("product_id = ?", productID).First(&product)
 		if result.Error == nil {
 			amount, err := strconv.ParseInt(c.Params("amount"), 10, 64)
 			if err != nil {
-				return c.JSON(&fiber.Map{
-					"status":  fiber.StatusBadRequest,
-					"success": false,
-					"error":   "Wrong order item amount format",
-				})
+				return clientError(c, "Wrong order item amount format")
 			}
 			orderItem := data.OrderItem{
 				Product:   product,
@@ -184,27 +148,15 @@ func addOrderItem(c *fiber.Ctx) error {
 				"orderItem": orderItem,
 			})
 		}
-		return c.JSON(&fiber.Map{
-			"status":  fiber.StatusBadRequest,
-			"success": false,
-			"error":   "Product does not exist",
-		})
+		return clientError(c, "Product does not exist")
 	}
-	return c.JSON(&fiber.Map{
-		"status":  fiber.StatusBadRequest,
-		"success": false,
-		"error":   "Order does not exist",
-	})
+	return clientError(c, "Order does not exist")
 }
 
 func fetchOrder(c *fiber.Ctx) error {
 	orderID, err := strconv.ParseInt(c.Params("orderid"), 10, 64)
 	if err != nil {
-		return c.JSON(&fiber.Map{
-			"status":  fiber.StatusBadRequest,
-			"success": false,
-			"error":   "Wrong order ID format",
-		})
+		return clientError(c, "Wrong order ID format")
 	}
 	var order data.Order
 	result := db.Where("order_id = ?", orderID).First(&order)
@@ -220,21 +172,13 @@ func fetchOrder(c *fiber.Ctx) error {
 			"order":   order,
 		})
 	}
-	return c.JSON(&fiber.Map{
-		"status":  fiber.StatusBadRequest,
-		"success": false,
-		"error":   "Order does not exist",
-	})
+	return clientError(c, "Order does not exist")
 }
 
 func deleteOrderItem(c *fiber.Ctx) error {
 	itemID, err := strconv.ParseInt(c.Params("itemid"), 10, 64)
 	if err != nil {
-		return c.JSON(&fiber.Map{
-			"status":  fiber.StatusBadRequest,
-			"success": false,
-			"error":   "Wrong order item ID format",
-		})
+		return clientError(c, "Wrong order item ID format")
 	}
 	res := db.Where("order_item_id = ?", itemID).Delete(data.OrderItem{})
 	if res.RowsAffected > 0 {
@@ -243,21 +187,13 @@ func deleteOrderItem(c *fiber.Ctx) error {
 			"success": true,
 		})
 	}
-	return c.JSON(&fiber.Map{
-		"status":  fiber.StatusBadRequest,
-		"success": false,
-		"error":   "Order item does not exist",
-	})
+	return clientError(c, "Order item does not exist")
 }
 
 func confirmOrder(c *fiber.Ctx) error {
 	orderID, err := strconv.ParseInt(c.Params("orderid"), 10, 64)
 	if err != nil {
-		return c.JSON(&fiber.Map{
-			"status":  fiber.StatusBadRequest,
-			"success": false,
-			"error":   "Wrong order item ID format",
-		})
+		return clientError(c, "Wrong order item ID format")
 	}
 	res := db.Model(&data.Order{}).Where("order_id = ?", orderID).Update("confirmed", true)
 	if res.RowsAffected > 0 {
@@ -266,29 +202,17 @@ func confirmOrder(c *fiber.Ctx) error {
 			"success": true,
 		})
 	}
-	return c.JSON(&fiber.Map{
-		"status":  fiber.StatusBadRequest,
-		"success": false,
-		"error":   "Order does not exist",
-	})
+	return clientError(c, "Order does not exist")
 }
 
 func changeOrderItemAmount(c *fiber.Ctx) error {
 	itemID, err := strconv.ParseInt(c.Params("itemid"), 10, 64)
 	if err != nil {
-		return c.JSON(&fiber.Map{
-			"status":  fiber.StatusBadRequest,
-			"success": false,
-			"error":   "Wrong order item ID format",
-		})
+		return clientError(c, "Wrong order item ID format")
 	}
 	amount, err := strconv.ParseInt(c.Params("amount"), 10, 64)
 	if err != nil {
-		return c.JSON(&fiber.Map{
-			"status":  fiber.StatusBadRequest,
-			"success": false,
-			"error":   "Wrong order item amount format",
-		})
+		return clientError(c, "Wrong order item amount format")
 	}
 	res := db.Model(&data.OrderItem{}).Where("order_item_id = ?", itemID).Update("amount", amount)
 	if res.RowsAffected > 0 {
@@ -297,11 +221,7 @@ func changeOrderItemAmount(c *fiber.Ctx) error {
 			"success": true,
 		})
 	}
-	return c.JSON(&fiber.Map{
-		"status":  fiber.StatusBadRequest,
-		"success": false,
-		"error":   "Order item does not exist",
-	})
+	return clientError(c, "Order item does not exist")
 }
 
 // SHOULDN'T BE API REQUEST!
