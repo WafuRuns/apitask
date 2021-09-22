@@ -3,7 +3,7 @@ package main
 import (
 	"strconv"
 
-	"github.com/KawaiiWafu/apitask/data"
+	"github.com/WafuRuns/apitask/data"
 	"github.com/gofiber/fiber/v2"
 )
 
