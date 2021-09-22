@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/KawaiiWafu/apitask/data"
+	"github.com/WafuRuns/apitask/data"
 	"github.com/gofiber/fiber/v2"
 	"github.com/robfig/cron/v3"
 	"gorm.io/driver/sqlite"
