@@ -1,4 +1,4 @@
-module github.com/KawaiiWafu/apitask
+module github.com/WafuRuns/apitask
 
 go 1.16
 
