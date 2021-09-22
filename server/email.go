@@ -5,7 +5,7 @@ import (
 	"net/smtp"
 	"time"
 
-	"github.com/KawaiiWafu/apitask/data"
+	"github.com/WafuRuns/apitask/data"
 )
 
 func sendReminders() {
